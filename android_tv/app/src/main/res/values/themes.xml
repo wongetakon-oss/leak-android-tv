@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base Theme menggunakan Theme.Leanback dengan aksen Netflix -->
+    <style name="Theme.LK21NetflixTV" parent="Theme.Leanback">
+        <item name="android:colorPrimary">@color/netflix_red</item>
+        <item name="android:colorPrimaryDark">@color/netflix_black</item>
+        <item name="android:colorAccent">@color/netflix_red</item>
+        <item name="android:windowBackground">@color/netflix_black</item>
+        <item name="defaultBrandColor">@color/netflix_red</item>
+        <item name="defaultSearchColor">@color/netflix_dark_red</item>
+    </style>
+
+    <style name="Theme.LK21NetflixTV.Player" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/netflix_black</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>

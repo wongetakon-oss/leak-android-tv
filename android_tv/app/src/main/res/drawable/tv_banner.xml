@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <!-- Background Gelap Khas Netflix -->
+    <path
+        android:fillColor="#141414"
+        android:pathData="M0,0h320v180h-320z" />
+    
+    <!-- Aksen Garis Merah Bawah -->
+    <path
+        android:fillColor="#E50914"
+        android:pathData="M0,172h320v8h-320z" />
+
+    <!-- Logo Kotak N Merah -->
+    <path
+        android:fillColor="#E50914"
+        android:pathData="M40,30h35v120h-35z" />
+    <path
+        android:fillColor="#B81D24"
+        android:pathData="M40,30l60,120h35l-60,-120z" />
+    <path
+        android:fillColor="#E50914"
+        android:pathData="M100,30h35v120h-35z" />
+
+    <!-- Aksen Bentuk Layar TV -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M180,60h90v55h-90z" />
+    <path
+        android:fillColor="#141414"
+        android:pathData="M185,65h80v45h-80z" />
+    <path
+        android:fillColor="#E50914"
+        android:pathData="M210,120h30v6h-30z" />
+</vector>

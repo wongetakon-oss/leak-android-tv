@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="40dp"
+    android:viewportWidth="120"
+    android:viewportHeight="40">
+    <path
+        android:fillColor="#E50914"
+        android:pathData="M10,5h12v30h-12z" />
+    <path
+        android:fillColor="#B81D24"
+        android:pathData="M10,5l20,30h12l-20,-30z" />
+    <path
+        android:fillColor="#E50914"
+        android:pathData="M30,5h12v30h-12z" />
+    <!-- Teks 'TV' -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,10h20v5h-7.5v20h-5v-20h-7.5z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M85,10h5l7.5,25h-5l-5,-18l-5,18h-5z" />
+</vector>

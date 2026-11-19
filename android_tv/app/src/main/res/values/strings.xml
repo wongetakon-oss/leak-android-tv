@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">LK21 TV</string>
+    <string name="browse_title">LK21 CINEMA</string>
+    <string name="loading_feed">Memuat koleksi film...</string>
+    <string name="error_feed">Gagal menghubungi server backend. Pastikan server FastAPI aktif di jaringan Wi-Fi yang sama.</string>
+    <string name="play">Tonton Sekarang</string>
+</resources>
