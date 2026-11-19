@@ -75,7 +75,7 @@ class PlaybackActivity : FragmentActivity() {
                         val current = it.currentPosition
                         it.seekTo((current - 10000).coerceAtLeast(0))
                     }
-                    playerView.showController()
+                    playerView.show()
                     return true
                 }
                 KeyEvent.KEYCODE_DPAD_RIGHT -> {
@@ -85,7 +85,7 @@ class PlaybackActivity : FragmentActivity() {
                         val duration = it.duration
                         it.seekTo((current + 10000).coerceAtMost(duration))
                     }
-                    playerView.showController()
+                    playerView.show()
                     return true
                 }
                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
@@ -94,7 +94,7 @@ class PlaybackActivity : FragmentActivity() {
                     } else {
                         player?.play()
                     }
-                    playerView.showController()
+                    playerView.show()
                     return true
                 }
                 KeyEvent.KEYCODE_BACK -> {
