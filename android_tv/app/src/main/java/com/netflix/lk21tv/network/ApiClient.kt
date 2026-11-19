@@ -31,7 +31,7 @@ object ApiClient {
      * - Jika diinstal langsung di Android TV fisik: ganti dengan IP lokal laptop/PC Anda,
      *   misalnya "http://192.168.1.15:8000/" (pastikan TV & PC dalam 1 Wi-Fi).
      */
-    var BASE_URL = "http://10.0.2.2:8000/"
+    var BASE_URL = "http://192.168.28.7:8000/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
