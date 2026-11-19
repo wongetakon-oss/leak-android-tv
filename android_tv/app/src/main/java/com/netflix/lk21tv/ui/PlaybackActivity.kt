@@ -8,12 +8,14 @@ import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.netflix.lk21tv.R
 import com.netflix.lk21tv.network.ApiClient
 import kotlinx.coroutines.launch
 
+@UnstableApi
 class PlaybackActivity : FragmentActivity() {
 
     private var player: ExoPlayer? = null
@@ -52,7 +54,6 @@ class PlaybackActivity : FragmentActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this@PlaybackActivity, "Gagal memuat stream. Memutar video demo...", Toast.LENGTH_SHORT).show()
-                // Default fallback stream (Big Buck Bunny)
                 playMedia("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
             }
         }
@@ -65,27 +66,26 @@ class PlaybackActivity : FragmentActivity() {
         player?.play()
     }
 
-    // Penanganan Kontrol Remote TV (D-Pad & Media Keys)
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             when (event.keyCode) {
                 KeyEvent.KEYCODE_DPAD_LEFT -> {
-                    // Mundur 10 detik
                     player?.let {
                         val current = it.currentPosition
                         it.seekTo((current - 10000).coerceAtLeast(0))
                     }
-                    playerView.show()
+                    playerView.controllerShowTimeoutMs = 3000
+                    playerView.showController()
                     return true
                 }
                 KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                    // Maju 10 detik
                     player?.let {
                         val current = it.currentPosition
                         val duration = it.duration
                         it.seekTo((current + 10000).coerceAtMost(duration))
                     }
-                    playerView.show()
+                    playerView.controllerShowTimeoutMs = 3000
+                    playerView.showController()
                     return true
                 }
                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
@@ -94,7 +94,8 @@ class PlaybackActivity : FragmentActivity() {
                     } else {
                         player?.play()
                     }
-                    playerView.show()
+                    playerView.controllerShowTimeoutMs = 3000
+                    playerView.showController()
                     return true
                 }
                 KeyEvent.KEYCODE_BACK -> {
