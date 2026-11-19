@@ -1,9 +1,7 @@
 package com.netflix.lk21tv.ui
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -69,7 +67,7 @@ class MainFragment : BrowseSupportFragment() {
         // Ketika remote menyorot salah satu film (D-Pad navigasi)
         // Ubah latar belakang dinamis seperti Netflix
         setOnItemViewSelectedListener { _, item, _, _ ->
-            if (item is MovieCard && !item.posterUrl.isNullOrEmpty()) {
+            if (item is MovieCard && item.posterUrl.isNotEmpty()) {
                 lifecycleScope.launch {
                     try {
                         Glide.with(requireContext())
@@ -132,10 +130,5 @@ class MainFragment : BrowseSupportFragment() {
             )
         )
         populateRows(sampleFeed)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        backgroundManager.release()
     }
 }

@@ -11,7 +11,20 @@
         android:layout_height="match_parent"
         app:use_controller="true"
         app:resize_mode="fit"
-        app:show_buffering="always"
-        app:controller_layout_id="@layout/custom_player_control" />
+        app:show_buffering="always" />
+
+    <TextView
+        android:id="@+id/player_movie_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="32dp"
+        android:textColor="@android:color/white"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:shadowColor="#000000"
+        android:shadowDx="2"
+        android:shadowDy="2"
+        android:shadowRadius="4" />
 
 </FrameLayout>

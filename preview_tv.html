@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi Android TV - LK21 Netflix Edition</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body {
+      background-color: #0b0b0b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #fff;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* TV Frame Container */
+    #tv-container {
+      flex: 1;
+      height: 100vh;
+      position: relative;
+      background-color: #141414;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dynamic Backdrop Wallpaper */
+    #backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 70%;
+      background-size: cover;
+      background-position: center top;
+      transition: background-image 0.4s ease-in-out;
+      opacity: 0.35;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+      -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+      z-index: 1;
+    }
+
+    /* Header Nav */
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 48px;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-badge {
+      background-color: #E50914;
+      color: #fff;
+      font-weight: 900;
+      padding: 4px 10px;
+      font-size: 20px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+    .logo-text {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #fff;
+    }
+    .nav-hints {
+      font-size: 13px;
+      color: #aaa;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* Hero Section (Selected Movie Preview) */
+    #hero {
+      position: relative;
+      z-index: 5;
+      padding: 0 48px;
+      height: 240px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 650px;
+    }
+    #hero-title {
+      font-size: 38px;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 10px;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    }
+    #hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .rating-pill {
+      background: #E50914;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .quality-pill {
+      border: 1px solid #777;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 12px;
+      color: #ccc;
+    }
+    #hero-desc {
+      font-size: 14px;
+      color: #ccc;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    }
+
+    /* Rows Section */
+    #rows-viewport {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      overflow-y: hidden;
+      padding: 10px 48px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .category-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .category-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e5e5e5;
+    }
+    .cards-row {
+      display: flex;
+      gap: 18px;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Movie Card */
+    .movie-card {
+      flex: 0 0 160px;
+      height: 240px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #1f1f1f;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      border: 3px solid transparent;
+    }
+    .movie-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .movie-card .card-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+      padding: 18px 10px 8px;
+      font-size: 12px;
+    }
+    .movie-card .card-title {
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .movie-card .card-sub {
+      color: #aaa;
+      font-size: 11px;
+    }
+
+    /* TV Focused State (Remote Selected) */
+    .movie-card.focused {
+      transform: scale(1.16);
+      z-index: 20;
+      border-color: #fff;
+      box-shadow: 0 10px 30px rgba(229, 9, 20, 0.5), 0 0 15px rgba(255,255,255,0.7);
+    }
+    .movie-card.focused .card-info {
+      background: #222;
+    }
+
+    /* Interactive Remote Simulator Sidebar */
+    #remote-sidebar {
+      width: 320px;
+      background: #111;
+      border-left: 1px solid #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+    }
+    .remote-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #E50914;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .remote-sub {
+      font-size: 11px;
+      color: #777;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    /* Remote Hardware Design */
+    .remote-body {
+      width: 200px;
+      background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+      border-radius: 40px;
+      padding: 28px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      border: 1px solid #333;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 2px 2px rgba(255,255,255,0.1);
+    }
+    .remote-row {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      justify-content: center;
+    }
+    .btn-power {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #b81d24;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    }
+    
+    /* D-PAD */
+    .dpad {
+      width: 140px;
+      height: 140px;
+      background: #161616;
+      border-radius: 50%;
+      position: relative;
+      border: 2px solid #333;
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.8);
+    }
+    .dpad-btn {
+      position: absolute;
+      background: transparent;
+      border: none;
+      color: #aaa;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.1s;
+    }
+    .dpad-btn:hover, .dpad-btn:active {
+      color: #E50914;
+    }
+    .dpad-up { top: 6px; left: 50%; transform: translateX(-50%); width: 44px; height: 32px; }
+    .dpad-down { bottom: 6px; left: 50%; transform: translateX(-50%); width: 44px; height: 32px; }
+    .dpad-left { left: 6px; top: 50%; transform: translateY(-50%); width: 32px; height: 44px; }
+    .dpad-right { right: 6px; top: 50%; transform: translateY(-50%); width: 32px; height: 44px; }
+    .dpad-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px;
+      height: 56px;
+      background: #282828;
+      border-radius: 50%;
+      border: 1px solid #444;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .dpad-center:active {
+      background: #E50914;
+    }
+
+    .btn-action {
+      background: #252525;
+      border: 1px solid #3a3a3a;
+      color: #ddd;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    .btn-action:hover, .btn-action:active {
+      background: #333;
+      color: #fff;
+    }
+
+    /* Video Player Modal (Simulasi Pemutar TV) */
+    #player-modal {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 100;
+      flex-direction: column;
+    }
+    #player-modal video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .player-overlay {
+      position: absolute;
+      top: 24px;
+      left: 36px;
+      z-index: 10;
+      background: rgba(0,0,0,0.6);
+      padding: 10px 18px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .player-back-btn {
+      background: #E50914;
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .player-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TV Display Viewport -->
+  <div id="tv-container">
+    <div id="backdrop"></div>
+
+    <header>
+      <div class="logo-container">
+        <span class="logo-badge">LK21</span>
+        <span class="logo-text">CINEMA TV</span>
+      </div>
+      <div class="nav-hints">
+        Gunakan tombol panah keyboard <b>[↑] [↓] [←] [→]</b> & <b>[ENTER]</b> untuk mencoba navigasi TV
+      </div>
+    </header>
+
+    <!-- Hero Focused Details -->
+    <div id="hero">
+      <h1 id="hero-title">Memuat...</h1>
+      <div id="hero-meta">
+        <span class="rating-pill" id="hero-rating">8.5 ★</span>
+        <span class="quality-pill" id="hero-quality">4K UltraHD</span>
+        <span style="color:#aaa;">2024</span>
+      </div>
+      <p id="hero-desc">Memuat sinopsis film...</p>
+    </div>
+
+    <!-- Rows Viewport (Scrollable with D-Pad) -->
+    <div id="rows-viewport"></div>
+
+    <!-- Video Player Simulation -->
+    <div id="player-modal">
+      <div class="player-overlay">
+        <button class="player-back-btn" onclick="closePlayer()">◀ KEMBALI [BACK]</button>
+        <span class="player-title" id="player-video-title">Judul Film</span>
+      </div>
+      <video id="tv-video" controls autoplay>
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+        Browser Anda tidak mendukung video.
+      </video>
+    </div>
+  </div>
+
+  <!-- Virtual Android TV Remote Control -->
+  <div id="remote-sidebar">
+    <div class="remote-title">Remote Android TV</div>
+    <div class="remote-sub">Klik tombol remote di bawah untuk mensimulasikan penggunaan TV sungguhan</div>
+
+    <div class="remote-body">
+      <div class="remote-row" style="justify-content: flex-end;">
+        <button class="btn-power" title="Power TV">⏻</button>
+      </div>
+
+      <!-- D-Pad Directional -->
+      <div class="dpad">
+        <button class="dpad-btn dpad-up" onclick="navigate('up')">▲</button>
+        <button class="dpad-btn dpad-down" onclick="navigate('down')">▼</button>
+        <button class="dpad-btn dpad-left" onclick="navigate('left')">◀</button>
+        <button class="dpad-btn dpad-right" onclick="navigate('right')">▶</button>
+        <button class="dpad-center" onclick="activateCurrentCard()">OK</button>
+      </div>
+
+      <div class="remote-row">
+        <button class="btn-action" onclick="closePlayer()">BACK</button>
+        <button class="btn-action" onclick="resetToHome()">HOME</button>
+      </div>
+
+      <div class="remote-row">
+        <button class="btn-action" onclick="seekVideo(-10)">⏪ 10s</button>
+        <button class="btn-action" onclick="togglePlayPause()">⏯ PLAY</button>
+        <button class="btn-action" onclick="seekVideo(10)">10s ⏩</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Data Katalog Film yang Sama Persis dengan Backend Android TV
+    const categories = [
+      {
+        id: 1,
+        title: "🔥 Sedang Tren Minggu Ini",
+        movies: [
+          {
+            id: "avatar-the-way-of-water",
+            title: "Avatar: The Way of Water",
+            poster: "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg",
+            rating: "8.2",
+            quality: "4K UHD",
+            desc: "Jake Sully dan Neytiri harus melindungi keluarga mereka dari ancaman bangsa manusia dan menjelajahi wilayah baru di lautan Pandora.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+          },
+          {
+            id: "spider-man-no-way-home",
+            title: "Spider-Man: No Way Home",
+            poster: "https://image.tmdb.org/t/p/w500/uJYYizSuA9Y3DCs0qS4qWvlyZz4.jpg",
+            rating: "8.7",
+            quality: "1080p HD",
+            desc: "Identitas rahasia Peter Parker terbongkar ke seluruh dunia, memicu terbukanya gerbang multiverse berbahaya.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
+          },
+          {
+            id: "oppenheimer-2023",
+            title: "Oppenheimer",
+            poster: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+            rating: "8.9",
+            quality: "IMAX HD",
+            desc: "Kisah mendebarkan fisikawan teoretis J. Robert Oppenheimer saat memimpin Proyek Manhattan untuk menciptakan senjata nuklir pertama.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+          },
+          {
+            id: "top-gun-maverick",
+            title: "Top Gun: Maverick",
+            poster: "https://image.tmdb.org/t/p/w500/62HCnUTziyWcpDaBO2i1DX17ljH.jpg",
+            rating: "8.4",
+            quality: "1080p HD",
+            desc: "Setelah lebih dari 30 tahun mengabdi, Pete 'Maverick' Mitchell kembali melatih regu pilot muda untuk misi tempur paling berbahaya.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
+          }
+        ]
+      },
+      {
+        id: 2,
+        title: "⭐ Film Terpopuler & Rating Tertinggi",
+        movies: [
+          {
+            id: "interstellar",
+            title: "Interstellar",
+            poster: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+            rating: "9.0",
+            quality: "4K UHD",
+            desc: "Di masa depan bumi yang hancur, sekelompok astronaut menjelajahi lubang cacing di orbit Saturnus demi kelangsungan umat manusia.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackSeeTheWorld.mp4"
+          },
+          {
+            id: "the-batman-2022",
+            title: "The Batman",
+            poster: "https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg",
+            rating: "8.1",
+            quality: "1080p HD",
+            desc: "Batman menyelidiki kasus korupsi rahasia di Gotham City sambil memburu pembunuh berantai bertopeng yang dikenal sebagai The Riddler.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4"
+          },
+          {
+            id: "dune-part-two",
+            title: "Dune: Part Two",
+            poster: "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
+            rating: "8.8",
+            quality: "4K UHD",
+            desc: "Paul Atreides memimpin kaum Fremen di planet padang pasir Arrakis untuk membalaskan dendam kehancuran keluarganya.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+          },
+          {
+            id: "pengabdi-setan-2",
+            title: "Pengabdi Setan 2: Communion",
+            poster: "https://image.tmdb.org/t/p/w500/9k97rQ2T4PZgUo0u3k4F2aZ7R1.jpg",
+            rating: "7.8",
+            quality: "1080p HD",
+            desc: "Rini dan keluarganya pindah ke rumah susun di Jakarta, namun teror kultus masa lalu kembali menuntut korban.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
+          }
+        ]
+      },
+      {
+        id: 3,
+        title: "💥 Aksi & Petualangan Pilihan",
+        movies: [
+          {
+            id: "john-wick-4",
+            title: "John Wick: Chapter 4",
+            poster: "https://image.tmdb.org/t/p/w500/vZloFAK7NKnMGKEslhZiVMIjrUR.jpg",
+            rating: "8.6",
+            quality: "4K UHD",
+            desc: "John Wick menemukan cara untuk mengalahkan High Table, tetapi sebelum dia dapat membebaskan dirinya, dia harus menghadapi aliansi mematikan di seluruh dunia.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
+          },
+          {
+            id: "mission-impossible-dead-reckoning",
+            title: "Mission: Impossible - Dead Reckoning",
+            poster: "https://image.tmdb.org/t/p/w500/NNxYkU70HPurnNCSiCjYAmacwm.jpg",
+            rating: "8.3",
+            quality: "1080p HD",
+            desc: "Ethan Hunt dan tim IMF-nya melacak senjata kecerdasan buatan baru yang berbahaya sebelum jatuh ke tangan yang salah.",
+            video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+          }
+        ]
+      }
+    ];
+
+    let currentRow = 0;
+    let currentCol = 0;
+    let isPlaying = false;
+
+    // Render Rows & Cards
+    const viewport = document.getElementById("rows-viewport");
+    function renderApp() {
+      viewport.innerHTML = "";
+      categories.forEach((cat, rIdx) => {
+        const catGroup = document.createElement("div");
+        catGroup.className = "category-group";
+
+        const title = document.createElement("div");
+        title.className = "category-title";
+        title.innerText = cat.title;
+        catGroup.appendChild(title);
+
+        const row = document.createElement("div");
+        row.className = "cards-row";
+        row.id = `row-${rIdx}`;
+
+        cat.movies.forEach((m, cIdx) => {
+          const card = document.createElement("div");
+          card.className = "movie-card";
+          card.id = `card-${rIdx}-${cIdx}`;
+          card.onclick = () => {
+            selectCard(rIdx, cIdx);
+            activateCurrentCard();
+          };
+
+          card.innerHTML = `
+            <img src="${m.poster}" alt="${m.title}" loading="lazy" />
+            <div class="card-info">
+              <div class="card-title">${m.title}</div>
+              <div class="card-sub">${m.rating} ★ • ${m.quality}</div>
+            </div>
+          `;
+          row.appendChild(card);
+        });
+
+        catGroup.appendChild(row);
+        viewport.appendChild(catGroup);
+      });
+
+      updateFocus();
+    }
+
+    function selectCard(r, c) {
+      currentRow = r;
+      currentCol = c;
+      updateFocus();
+    }
+
+    function updateFocus() {
+      // Remove previous focus
+      document.querySelectorAll(".movie-card").forEach(el => el.classList.remove("focused"));
+
+      const currentCardEl = document.getElementById(`card-${currentRow}-${currentCol}`);
+      if (currentCardEl) {
+        currentCardEl.classList.add("focused");
+      }
+
+      // Update Hero Information & Backdrop
+      const movie = categories[currentRow].movies[currentCol];
+      if (movie) {
+        document.getElementById("hero-title").innerText = movie.title;
+        document.getElementById("hero-desc").innerText = movie.desc;
+        document.getElementById("hero-rating").innerText = `${movie.rating} ★`;
+        document.getElementById("hero-quality").innerText = movie.quality;
+        document.getElementById("backdrop").style.backgroundImage = `url('${movie.poster}')`;
+      }
+
+      // Smooth TV Scroll
+      const currentRowEl = document.getElementById(`row-${currentRow}`);
+      if (currentRowEl) {
+        const shiftX = Math.max(0, (currentCol * 178) - 100);
+        currentRowEl.style.transform = `translateX(-${shiftX}px)`;
+      }
+
+      const shiftY = currentRow * 150;
+      viewport.style.transform = `translateY(-${shiftY}px)`;
+    }
+
+    // Directional Navigation
+    function navigate(dir) {
+      if (isPlaying) return;
+
+      if (dir === "up") {
+        if (currentRow > 0) {
+          currentRow--;
+          currentCol = Math.min(currentCol, categories[currentRow].movies.length - 1);
+        }
+      } else if (dir === "down") {
+        if (currentRow < categories.length - 1) {
+          currentRow++;
+          currentCol = Math.min(currentCol, categories[currentRow].movies.length - 1);
+        }
+      } else if (dir === "left") {
+        if (currentCol > 0) currentCol--;
+      } else if (dir === "right") {
+        if (currentCol < categories[currentRow].movies.length - 1) currentCol++;
+      }
+      updateFocus();
+    }
+
+    function activateCurrentCard() {
+      const movie = categories[currentRow].movies[currentCol];
+      if (!movie) return;
+
+      const playerModal = document.getElementById("player-modal");
+      const videoEl = document.getElementById("tv-video");
+      document.getElementById("player-video-title").innerText = `${movie.title} (${movie.quality})`;
+
+      videoEl.src = movie.video;
+      playerModal.style.display = "flex";
+      videoEl.play();
+      isPlaying = true;
+    }
+
+    function closePlayer() {
+      const playerModal = document.getElementById("player-modal");
+      const videoEl = document.getElementById("tv-video");
+      videoEl.pause();
+      playerModal.style.display = "none";
+      isPlaying = false;
+    }
+
+    function togglePlayPause() {
+      const videoEl = document.getElementById("tv-video");
+      if (isPlaying) {
+        if (videoEl.paused) videoEl.play();
+        else videoEl.pause();
+      } else {
+        activateCurrentCard();
+      }
+    }
+
+    function seekVideo(seconds) {
+      const videoEl = document.getElementById("tv-video");
+      if (isPlaying) {
+        videoEl.currentTime = Math.max(0, videoEl.currentTime + seconds);
+      }
+    }
+
+    function resetToHome() {
+      closePlayer();
+      currentRow = 0;
+      currentCol = 0;
+      updateFocus();
+    }
+
+    // Keyboard Event Listener (TV Remote Simulation)
+    window.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "ArrowUp":
+          e.preventDefault();
+          navigate("up");
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          navigate("down");
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          if (isPlaying) seekVideo(-10);
+          else navigate("left");
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          if (isPlaying) seekVideo(10);
+          else navigate("right");
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (!isPlaying) activateCurrentCard();
+          break;
+        case "Escape":
+        case "Backspace":
+          e.preventDefault();
+          closePlayer();
+          break;
+        case " ":
+          e.preventDefault();
+          togglePlayPause();
+          break;
+      }
+    });
+
+    renderApp();
+  </script>
+</body>
+</html>

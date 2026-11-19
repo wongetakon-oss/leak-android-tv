@@ -1,6 +1,5 @@
 package com.netflix.lk21tv.ui
 
-import android.graphics.Color
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.leanback.widget.ImageCardView
@@ -18,23 +17,12 @@ class CardPresenter : Presenter() {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
-        val cardView = object : ImageCardView(parent.context) {
-            override fun setSelected(selected: Boolean) {
-                super.setSelected(selected)
-                // Aksen efek fokus saat remote menyorot poster
-                if (selected) {
-                    setInfoAreaBackgroundColor(ContextCompat.getColor(context, R.color.netflix_card_bg))
-                } else {
-                    setInfoAreaBackgroundColor(ContextCompat.getColor(context, R.color.netflix_dark_gray))
-                }
-            }
-        }.apply {
+        val cardView = ImageCardView(parent.context).apply {
             isFocusable = true
             isFocusableInTouchMode = true
             setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT)
             setInfoAreaBackgroundColor(ContextCompat.getColor(context, R.color.netflix_dark_gray))
         }
-
         return ViewHolder(cardView)
     }
 
